@@ -24,21 +24,6 @@ dependencies {
     implementation(files("libs/gemini-api-1beta.0.2.8-SNAPSHOT.jar"))
     implementation(files("libs/gemini-gson-1beta.0.2.8-SNAPSHOT.jar"))
 
-
-
-//    implementation("swiss.ameri:gemini-api:1beta.0.2.8-SNAPSHOT")
-//    implementation("swiss.ameri:gemini-gson:1beta.0.2.8-SNAPSHOT")
-
-//    implementation("com.github.HatKid21:gemini-api:main")
-//    implementation("com.github.HatKid21:gemini-gson:main")
-
-//    implementation("com.github.HatKid21:gemini-api:master")
-
-
-
-//    implementation("swiss.ameri:gemini-api:1beta.0.2.7")
-//    implementation("swiss.ameri:gemini-gson:1beta.0.2.7")
-
     implementation("org.commonmark:commonmark:0.21.0")
 }
 
