@@ -52,3 +52,9 @@ config.properties
 !**/src/test/**/out/
 !**/src/main/**/bin/
 !**/src/test/**/bin/
+
+### Database ###
+reminders/
+*.db
+*.sqlite
+*.sqlite3
