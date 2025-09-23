@@ -9,7 +9,7 @@ public class AiBotSettings {
     private int topK = 80;
     private double topP = 0.6;
     private int maxOutputTokens = 8192;
-    private ModelVariant aiModel = ModelVariant.GEMINI_2_5_FLASH;
+    private String aiModel = "gemini-2.5-flash";
 
     public AiBotSettings() {
 
@@ -35,17 +35,22 @@ public class AiBotSettings {
         return maxOutputTokens;
     }
 
-    public ModelVariant getAiModel() {
-        return aiModel;
+    public String  getAiModel() {
+        return "models/" +  aiModel;
     }
 
     public void setBotInstructions(String botInstructions) {
         this.botInstructions = botInstructions;
     }
 
-    public void setAiModel(ModelVariant aiModel) {
-        this.aiModel = aiModel;
+    public void setAiModel(String aiModel) {
+        this.aiModel = "models/" + aiModel;
     }
+
+    public void setAiModel(ModelVariant aiModel) {
+        this.aiModel = aiModel.variant();
+    }
+
 
     public void setMaxOutputTokens(int maxOutputTokens) {
         this.maxOutputTokens = maxOutputTokens;

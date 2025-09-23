@@ -40,7 +40,7 @@ public class IdleStateHandler extends BaseStateHandler implements StateHandler{
             bufferManager.registerUser(chatId);
             scheduler.schedule(() ->    sendRequest(chatId,bot),3, TimeUnit.SECONDS);
         }
-        if (message.hasPhoto()){
+            if (message.hasPhoto()){
             bufferManager.addFile(chatId,proceedPhotoInput(bot, message));
         } else if (message.hasVideo()) {
             bufferManager.addFile(chatId,proceedVideoInput(bot,message));
