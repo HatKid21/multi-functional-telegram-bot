@@ -1,5 +1,5 @@
 
-Multifunctional bot with AI assistent and reminder system.
+Multifunctional bot with AI assistant and reminder system.
 
 # Features
 
@@ -17,7 +17,7 @@ Multifunctional bot with AI assistent and reminder system.
 
 * Gemini API key ([get it](https://aistudio.google.com/apikey))
 
-## Evironment variables settings
+## Environment variables settings
 
 - `GEMINI_AI_API_KEY` - Your Gemini API key
 
@@ -28,6 +28,8 @@ Multifunctional bot with AI assistent and reminder system.
 - `KEY_PASSWORD` - Key password
 
 - `KEYSTORE_PASSWORD` - Keystore password
+
+- `KEYSTORE_PATH` - Keystore path
 
 
 ## Technologies used

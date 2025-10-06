@@ -23,7 +23,7 @@ public class GeminiBot {
     //16384
     private static final long MAX_CONTEXT_WINDOW = 16384;
     private static final Logger LOGGER = Logger.getLogger(GeminiBot.class.getName());
-    private static final int API_TIMEOUT_SECONDS = 20   ;
+    private static final int API_TIMEOUT_SECONDS = 60   ;
     private static final String RESPONSE_MIME = "text/plain";
 
     private final GenAi geminiAi;
