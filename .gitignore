@@ -55,6 +55,7 @@ config.properties
 
 ### Database ###
 reminders/
+users/
 *.db
 *.sqlite
 *.sqlite3
