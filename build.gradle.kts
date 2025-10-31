@@ -18,7 +18,6 @@ dependencies {
     implementation("org.telegram:telegrambots-longpolling:8.3.0")
     implementation("org.telegram:telegrambots-client:8.3.0")
     implementation("com.google.code.gson:gson:2.13.1")
-    implementation("com.openai:openai-java:1.6.1")
     implementation("org.xerial:sqlite-jdbc:3.49.1.0")
 
     implementation("swiss.ameri:gemini-api:1beta.0.2.7")

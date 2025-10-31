@@ -1,5 +1,7 @@
 package com.github.hatkid.ai;
 
+import com.github.hatkid.functioncall.Function;
+import com.github.hatkid.functioncall.FunctionCallManager;
 import com.github.hatkid.utils.FileDownloader;
 import com.github.hatkid.utils.MessageData;
 import org.telegram.telegrambots.meta.api.objects.File;
@@ -9,7 +11,9 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
@@ -28,9 +32,12 @@ public class GeminiBot {
 
     private final GenAi geminiAi;
 
+    private final FunctionCallManager functionCallManager;
+
     public GeminiBot(GenAi geminiAi, ConfigurationManager configurationManager) {
         this.geminiAi = geminiAi;
         this.configurationManager = configurationManager;
+        functionCallManager = new FunctionCallManager();
     }
 
     private void setSafetyConfig(GenerativeModel.GenerativeModelBuilder builder) {
@@ -95,6 +102,12 @@ public class GeminiBot {
         builder.generationConfig(generationConfig);
     }
 
+    private void setTools(GenerativeModel.GenerativeModelBuilder builder){
+        for (Map.Entry<String, Function> entry : functionCallManager.getFunctions().entrySet()){
+            builder.addFunctionDeclaration(entry.getValue().getFunctionDeclaration());
+        }
+    }
+
 
     private GenerativeModel createGenerativeModel(User user) {
         GenerativeModel.GenerativeModelBuilder builder = GenerativeModel.builder();
@@ -105,6 +118,7 @@ public class GeminiBot {
         setSafetyConfig(builder);
         setUserContext(builder, user);
         setConfig(builder, botSettings);
+        setTools(builder);
         return correctContextWindow(builder.build(),user);
     }
 
@@ -138,7 +152,9 @@ public class GeminiBot {
     private String sendTextRequest(User user, String message) {
         addTextContent(user, message);
         GenerativeModel generativeModel = createGenerativeModel(user);
-        return getResponse(user, generativeModel);
+        getFunctionCallResponse(user,generativeModel);
+        GenerativeModel generativeModel1 = createGenerativeModel(user);
+        return getResponse(user, generativeModel1);
     }
 
     public String sendRequest(User user, MessageData messageData) {
@@ -173,6 +189,28 @@ public class GeminiBot {
         }
         user.addContent(new Content.TextContent(Content.Role.MODEL.roleName(), response.text()));
         return response.text();
+    }
+
+    private void getFunctionCallResponse(User user,GenerativeModel generativeModel){
+        CompletableFuture<GenAi.GeneratedContent> future = geminiAi.generateContent(generativeModel);
+        GenAi.GeneratedContent response;
+        try {
+            response = future.get(API_TIMEOUT_SECONDS,TimeUnit.SECONDS);
+        } catch (Exception e){
+            LOGGER.log(Level.SEVERE, "ERROR",e);
+            return;
+        }
+        FunctionCall functionCall = response.functionCall();
+        String functionResponse;
+        if (functionCall != null){
+            functionResponse = functionCallManager.runFunction(functionCall.name());
+        } else{
+            functionResponse = "Error occurred";
+        }
+        Map<String, String> responses = new HashMap<>();
+        responses.put(functionCall.name(),functionResponse);
+
+        user.addContent(new Content.FunctionResponseContent(Content.Role.USER.roleName(),new FunctionResponse(functionCall.name(),responses)));
     }
 
 }

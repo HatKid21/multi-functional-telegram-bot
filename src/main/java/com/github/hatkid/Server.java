@@ -4,9 +4,13 @@ import com.github.hatkid.security.KeyStoreLoader;
 import com.github.hatkid.security.KeyStoreSetup;
 import org.telegram.telegrambots.longpolling.TelegramBotsLongPollingApplication;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
+import swiss.ameri.gemini.api.FunctionCall;
+import swiss.ameri.gemini.api.FunctionDeclaration;
+import swiss.ameri.gemini.api.Schema;
 
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.Map;
 import java.util.Scanner;
 import java.util.logging.Level;
 import java.util.logging.Logger;
