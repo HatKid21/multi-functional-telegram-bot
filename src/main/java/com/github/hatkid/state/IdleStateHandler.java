@@ -9,6 +9,7 @@ import com.github.hatkid.utils.MessageData;
 import org.telegram.telegrambots.meta.api.objects.*;
 import org.telegram.telegrambots.meta.api.objects.games.Animation;
 import org.telegram.telegrambots.meta.api.objects.message.Message;
+import org.telegram.telegrambots.meta.api.objects.photo.PhotoSize;
 import org.telegram.telegrambots.meta.api.objects.stickers.Sticker;
 import swiss.ameri.gemini.api.GenAi;
 import swiss.ameri.gemini.gson.GsonJsonParser;

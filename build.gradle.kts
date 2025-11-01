@@ -15,8 +15,8 @@ repositories {
 dependencies {
     testImplementation(platform("org.junit:junit-bom:5.10.0"))
     testImplementation("org.junit.jupiter:junit-jupiter")
-    implementation("org.telegram:telegrambots-longpolling:8.3.0")
-    implementation("org.telegram:telegrambots-client:8.3.0")
+    implementation("org.telegram:telegrambots-longpolling:9.2.0")
+    implementation("org.telegram:telegrambots-client:9.2.0")
     implementation("com.google.code.gson:gson:2.13.1")
     implementation("org.xerial:sqlite-jdbc:3.49.1.0")
 
