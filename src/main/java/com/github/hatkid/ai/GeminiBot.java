@@ -152,7 +152,10 @@ public class GeminiBot {
     private String sendTextRequest(User user, String message) {
         addTextContent(user, message);
         GenerativeModel generativeModel = createGenerativeModel(user);
-        getFunctionCallResponse(user,generativeModel);
+        GenAi.GeneratedContent generatedContent = getFunctionCallResponse(user,generativeModel);
+        if (generatedContent != null && generatedContent.functionCall() == null){
+            return generatedContent.text();
+        }
         GenerativeModel generativeModel1 = createGenerativeModel(user);
         return getResponse(user, generativeModel1);
     }
@@ -191,26 +194,26 @@ public class GeminiBot {
         return response.text();
     }
 
-    private void getFunctionCallResponse(User user,GenerativeModel generativeModel){
+    private GenAi.GeneratedContent getFunctionCallResponse(User user, GenerativeModel generativeModel){
         CompletableFuture<GenAi.GeneratedContent> future = geminiAi.generateContent(generativeModel);
         GenAi.GeneratedContent response;
         try {
             response = future.get(API_TIMEOUT_SECONDS,TimeUnit.SECONDS);
         } catch (Exception e){
             LOGGER.log(Level.SEVERE, "ERROR",e);
-            return;
+            return null;
         }
         FunctionCall functionCall = response.functionCall();
         String functionResponse;
-        if (functionCall != null){
-            functionResponse = functionCallManager.runFunction(functionCall.name());
-        } else{
-            functionResponse = "Error occurred";
+        if (functionCall == null){
+            return response;
         }
+        functionResponse = functionCallManager.runFunction(functionCall.name());
         Map<String, String> responses = new HashMap<>();
         responses.put(functionCall.name(),functionResponse);
 
         user.addContent(new Content.FunctionResponseContent(Content.Role.USER.roleName(),new FunctionResponse(functionCall.name(),responses)));
+        return response;
     }
 
 }
