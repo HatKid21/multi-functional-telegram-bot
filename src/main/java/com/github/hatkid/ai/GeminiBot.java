@@ -152,12 +152,7 @@ public class GeminiBot {
     private String sendTextRequest(User user, String message) {
         addTextContent(user, message);
         GenerativeModel generativeModel = createGenerativeModel(user);
-        GenAi.GeneratedContent generatedContent = getFunctionCallResponse(user,generativeModel);
-        if (generatedContent != null && generatedContent.functionCall() == null){
-            return generatedContent.text();
-        }
-        GenerativeModel generativeModel1 = createGenerativeModel(user);
-        return getResponse(user, generativeModel1);
+        return getResponse(user, generativeModel);
     }
 
     public String sendRequest(User user, MessageData messageData) {
@@ -190,30 +185,23 @@ public class GeminiBot {
             LOGGER.log(Level.SEVERE, "Unexpected error with Gemini API");
             return "Произошла непредвиденная ошибка";
         }
+
+        FunctionCall functionCall = response.functionCall();
+        if (functionCall != null){
+            String functionResponse = functionCallManager.runFunction(functionCall.name());
+            Map<String, String> responses = new HashMap<>();
+            responses.put(functionCall.name(),functionResponse);
+            user.addContent(new Content.FunctionResponseContent(Content.Role.USER.roleName(),new FunctionResponse(functionCall.name(),responses)));
+            try {
+                future = geminiAi.generateContent(createGenerativeModel(user));
+                response = future.get(API_TIMEOUT_SECONDS, TimeUnit.SECONDS);
+            } catch (InterruptedException | ExecutionException | TimeoutException e){
+                LOGGER.log(Level.SEVERE,"Error",e);
+            }
+        }
+
         user.addContent(new Content.TextContent(Content.Role.MODEL.roleName(), response.text()));
         return response.text();
-    }
-
-    private GenAi.GeneratedContent getFunctionCallResponse(User user, GenerativeModel generativeModel){
-        CompletableFuture<GenAi.GeneratedContent> future = geminiAi.generateContent(generativeModel);
-        GenAi.GeneratedContent response;
-        try {
-            response = future.get(API_TIMEOUT_SECONDS,TimeUnit.SECONDS);
-        } catch (Exception e){
-            LOGGER.log(Level.SEVERE, "ERROR",e);
-            return null;
-        }
-        FunctionCall functionCall = response.functionCall();
-        String functionResponse;
-        if (functionCall == null){
-            return response;
-        }
-        functionResponse = functionCallManager.runFunction(functionCall.name());
-        Map<String, String> responses = new HashMap<>();
-        responses.put(functionCall.name(),functionResponse);
-
-        user.addContent(new Content.FunctionResponseContent(Content.Role.USER.roleName(),new FunctionResponse(functionCall.name(),responses)));
-        return response;
     }
 
 }
