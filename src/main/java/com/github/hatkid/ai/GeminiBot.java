@@ -171,6 +171,10 @@ public class GeminiBot {
     private String getResponse(User user, GenerativeModel generativeModel) {
         CompletableFuture<GenAi.GeneratedContent> future = geminiAi.generateContent(generativeModel);
         GenAi.GeneratedContent response;
+
+        int maxFunctionCalls = 5;
+        int callCount = 0;
+
         do{
             try {
                 response = future.get(API_TIMEOUT_SECONDS, TimeUnit.SECONDS);
@@ -188,8 +192,12 @@ public class GeminiBot {
                 return "Произошла непредвиденная ошибка";
             }
             if (response != null && response.functionCall() != null){
+                if (callCount >= maxFunctionCalls){
+                    return "Превышено количество вызовов функций";
+                }
                 functionCallRequest(user,response.functionCall());
                 future = geminiAi.generateContent(createGenerativeModel(user));
+                callCount++;
             }
 
         } while (response != null && response.functionCall() != null);
@@ -218,25 +226,5 @@ public class GeminiBot {
         responses.put(functionCall.name(),functionResponse);
         user.addContent(new Content.FunctionResponseContent(Content.Role.USER.roleName(),new FunctionResponse(functionCall.name(),responses)));
     }
-
-
-    //        CompletableFuture<GenAi.GeneratedContent> future = geminiAi.generateContent(generativeModel);
-//        GenAi.GeneratedContent response;
-//        String errorMessage;
-//        try {
-//            response = future.get(API_TIMEOUT_SECONDS, TimeUnit.SECONDS);
-//        } catch (InterruptedException e) {
-//            LOGGER.log(Level.SEVERE, "Thread were interrupted with Gemini API.", e);
-//            errorMessage = "Произошла внутренняя ошибка при обработке запроса.";
-//        } catch (TimeoutException e) {
-//            LOGGER.log(Level.WARNING, "Time limit exceeded with Gemini API", e);
-//            errorMessage = "Извините ИИ не ответил вовремя. Попробуйте позже.";
-//        } catch (ExecutionException e) {
-//            LOGGER.log(Level.SEVERE, "Request error with Gemini API", e);
-//            errorMessage = "Произошла ошибка при обращении к ИИ.";
-//        } catch (Exception e) {
-//            LOGGER.log(Level.SEVERE, "Unexpected error with Gemini API");
-//            errorMessage = "Произошла непредвиденная ошибка";
-//        }
 
 }
