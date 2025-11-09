@@ -28,6 +28,7 @@ public class GeminiBot {
     private static final long MAX_CONTEXT_WINDOW = 16384;
     private static final Logger LOGGER = Logger.getLogger(GeminiBot.class.getName());
     private static final int API_TIMEOUT_SECONDS = 60   ;
+    private static final int FUNCTION_CALL_TIMEOUT_SECONDS = 10;
     private static final String RESPONSE_MIME = "text/plain";
 
     private final GenAi geminiAi;
@@ -170,38 +171,72 @@ public class GeminiBot {
     private String getResponse(User user, GenerativeModel generativeModel) {
         CompletableFuture<GenAi.GeneratedContent> future = geminiAi.generateContent(generativeModel);
         GenAi.GeneratedContent response;
-        try {
-            response = future.get(API_TIMEOUT_SECONDS, TimeUnit.SECONDS);
-        } catch (InterruptedException e) {
-            LOGGER.log(Level.SEVERE, "Thread were interrupted with Gemini API.", e);
-            return "Произошла внутренняя ошибка при обработке запроса.";
-        } catch (TimeoutException e) {
-            LOGGER.log(Level.WARNING, "Time limit exceeded with Gemini API", e);
-            return "Извините ИИ не ответил вовремя. Попробуйте позже.";
-        } catch (ExecutionException e) {
-            LOGGER.log(Level.SEVERE, "Request error with Gemini API", e);
-            return "Произошла ошибка при обращении к ИИ.";
-        } catch (Exception e) {
-            LOGGER.log(Level.SEVERE, "Unexpected error with Gemini API");
-            return "Произошла непредвиденная ошибка";
-        }
-
-        FunctionCall functionCall = response.functionCall();
-        if (functionCall != null){
-            String functionResponse = functionCallManager.runFunction(functionCall.name());
-            Map<String, String> responses = new HashMap<>();
-            responses.put(functionCall.name(),functionResponse);
-            user.addContent(new Content.FunctionResponseContent(Content.Role.USER.roleName(),new FunctionResponse(functionCall.name(),responses)));
+        do{
             try {
-                future = geminiAi.generateContent(createGenerativeModel(user));
                 response = future.get(API_TIMEOUT_SECONDS, TimeUnit.SECONDS);
-            } catch (InterruptedException | ExecutionException | TimeoutException e){
-                LOGGER.log(Level.SEVERE,"Error",e);
+            } catch (InterruptedException e) {
+                LOGGER.log(Level.SEVERE, "Thread were interrupted with Gemini API.", e);
+                return "Произошла внутренняя ошибка при обработке запроса.";
+            } catch (TimeoutException e) {
+                LOGGER.log(Level.WARNING, "Time limit exceeded with Gemini API", e);
+                return "Извините ИИ не ответил вовремя. Попробуйте позже.";
+            } catch (ExecutionException e) {
+                LOGGER.log(Level.SEVERE, "Request error with Gemini API", e);
+                return "Произошла ошибка при обращении к ИИ.";
+            } catch (Exception e) {
+                LOGGER.log(Level.SEVERE, "Unexpected error with Gemini API");
+                return "Произошла непредвиденная ошибка";
             }
-        }
+            if (response != null && response.functionCall() != null){
+                functionCallRequest(user,response.functionCall());
+                future = geminiAi.generateContent(createGenerativeModel(user));
+            }
+
+        } while (response != null && response.functionCall() != null);
 
         user.addContent(new Content.TextContent(Content.Role.MODEL.roleName(), response.text()));
         return response.text();
     }
+
+    private void functionCallRequest(User user, FunctionCall functionCall){
+        CompletableFuture<String> futureCallResponse = CompletableFuture.supplyAsync(() -> functionCallManager.runFunction(functionCall));
+        String functionResponse;
+        try{
+            functionResponse = futureCallResponse.get(FUNCTION_CALL_TIMEOUT_SECONDS,TimeUnit.SECONDS);
+        } catch (TimeoutException e){
+            LOGGER.log(Level.SEVERE, "Function call timeout exception!",e);
+            functionResponse = "Timeout";
+        } catch (ExecutionException e) {
+            LOGGER.log(Level.SEVERE, "Execution exception",e);
+            functionResponse = "Execution error";
+        } catch (InterruptedException e) {
+            LOGGER.log(Level.SEVERE,"Interrupted exception",e);
+            functionResponse = "Interrupted Exception";
+        }
+
+        Map<String, String> responses = new HashMap<>();
+        responses.put(functionCall.name(),functionResponse);
+        user.addContent(new Content.FunctionResponseContent(Content.Role.USER.roleName(),new FunctionResponse(functionCall.name(),responses)));
+    }
+
+
+    //        CompletableFuture<GenAi.GeneratedContent> future = geminiAi.generateContent(generativeModel);
+//        GenAi.GeneratedContent response;
+//        String errorMessage;
+//        try {
+//            response = future.get(API_TIMEOUT_SECONDS, TimeUnit.SECONDS);
+//        } catch (InterruptedException e) {
+//            LOGGER.log(Level.SEVERE, "Thread were interrupted with Gemini API.", e);
+//            errorMessage = "Произошла внутренняя ошибка при обработке запроса.";
+//        } catch (TimeoutException e) {
+//            LOGGER.log(Level.WARNING, "Time limit exceeded with Gemini API", e);
+//            errorMessage = "Извините ИИ не ответил вовремя. Попробуйте позже.";
+//        } catch (ExecutionException e) {
+//            LOGGER.log(Level.SEVERE, "Request error with Gemini API", e);
+//            errorMessage = "Произошла ошибка при обращении к ИИ.";
+//        } catch (Exception e) {
+//            LOGGER.log(Level.SEVERE, "Unexpected error with Gemini API");
+//            errorMessage = "Произошла непредвиденная ошибка";
+//        }
 
 }

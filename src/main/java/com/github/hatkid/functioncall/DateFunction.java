@@ -1,11 +1,14 @@
 package com.github.hatkid.functioncall;
 
+import swiss.ameri.gemini.api.FunctionCall;
 import swiss.ameri.gemini.api.FunctionDeclaration;
 import swiss.ameri.gemini.api.Schema;
 
+import java.util.Map;
+
 public class DateFunction implements Function{
 
-    private final FunctionDeclaration functionDeclaration = new FunctionDeclaration("date",
+    private static final FunctionDeclaration functionDeclaration = new FunctionDeclaration("date",
             "returns current user's date",
             Schema.builder().type(Schema.Type.STRING).build());
 
@@ -14,10 +17,8 @@ public class DateFunction implements Function{
         return functionDeclaration;
     }
 
-
-    //TODO make functions not only return strings
     @Override
-    public String run() {
+    public String run(Map<String, ?> args) {
         return "You have been rickrolled!!";
     }
 }
