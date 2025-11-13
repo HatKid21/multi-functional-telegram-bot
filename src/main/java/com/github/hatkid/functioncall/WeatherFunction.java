@@ -45,7 +45,6 @@ public class WeatherFunction implements Function{
         if (location.contains(" ")){
             location = "~" + location.replace(" ", "+");
         }
-        System.out.println(location);
         HttpClient httpClient = HttpClient.newHttpClient();
         HttpRequest httpRequest = HttpRequest.newBuilder()
                 .uri(URI.create(String.format(URL,location)))
