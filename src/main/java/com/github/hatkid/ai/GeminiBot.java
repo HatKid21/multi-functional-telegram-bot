@@ -115,6 +115,7 @@ public class GeminiBot {
         AiBotSettings botSettings = user.getBotSettings();
         builder.modelName(botSettings.getAiModel());
         setInstructions(builder, botSettings);
+        setSafetyConfig(builder);
         setConfig(builder, botSettings);
         setSafetyConfig(builder);
         setUserContext(builder, user);
